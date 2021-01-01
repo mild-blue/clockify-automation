@@ -83,9 +83,11 @@ def main():
     for i, entry in time_entries.iterrows():
         start = datetime.datetime.strptime(f'{entry["Start Date"]} {entry["Start Time"]}', '%m/%d/%Y %I:%M:%S %p')
         end = datetime.datetime.strptime(f'{entry["End Date"]} {entry["End Time"]}', '%m/%d/%Y %I:%M:%S %p')
+        tags = entry.Tags.split(', ') if isinstance(entry.Tags, str) else None
+        billable = entry.Billable == 'Yes' or (tags and 'billable' in tags)
         clockify.addEntry(start=start, description=entry.Description, projectName=entry.Project,
                           userMail="ireallyhateyourservices@gmail.com", workspace=workspace, end=end,
-                          tagNames=entry.Tags.split(', '), billable=True if entry.Billable == 'Yes' else False)
+                          tagNames=tags, billable=billable)
         logger.info(i)
 
 
