@@ -1,7 +1,10 @@
+import datetime
 import json
 import logging
 import os
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
+
+import pandas as pd
 
 from ClockifyAPI import ClockifyAPI
 
@@ -19,9 +22,10 @@ logger.addHandler(fileHandler)
 
 clockifyReqTimeout = 1
 fallbackUserMail = None
+workspace = "cl_test"
 
 
-def load_data() -> Optional[Tuple[str, str]]:
+def load_clockify_api_data() -> Optional[Tuple[List[str], str]]:
     f_name = os.path.abspath("config.json")
     try:
         f = open(f_name, "r")
@@ -35,12 +39,12 @@ def load_data() -> Optional[Tuple[str, str]]:
         logger.error("reading content of json file %s failed with msg: %s" % (f_name, str(e)))
         return None
 
-    if "ClockifyKey" not in data:
+    if "ClockifyKeys" not in data:
         logger.error("json entry 'ClockifyKeys' missing in file %s" % f_name)
         return None
 
-    clockify_token = data["ClockifyKey"]
-    if not isinstance(clockify_token, str):
+    clockify_tokens = data["ClockifyKeys"]
+    if not isinstance(clockify_tokens, list):
         logger.error("json entry 'ClockifyKeys' must be a list of strings")
         return None
 
@@ -66,13 +70,23 @@ def load_data() -> Optional[Tuple[str, str]]:
     else:
         fallback_user_email = None
 
-    return clockify_token, clockify_admin
+    return clockify_tokens, clockify_admin
 
 
 def main():
-    clockify_token, clockify_admin = load_data()
-    clockify = ClockifyAPI(clockify_token, clockify_admin, reqTimeout=clockifyReqTimeout,
+    clockify_tokens, clockify_admin = load_clockify_api_data()
+    clockify = ClockifyAPI(clockify_tokens, clockify_admin, reqTimeout=clockifyReqTimeout,
                            fallbackUserMail=fallbackUserMail)
+    clockify.getProjects(workspace=workspace)
+
+    time_entries = pd.read_csv("Clockify_Detailed_Report_01_01_2020-12_31_2020.csv")
+    for i, entry in time_entries.iterrows():
+        start = datetime.datetime.strptime(f'{entry["Start Date"]} {entry["Start Time"]}', '%m/%d/%Y %I:%M:%S %p')
+        end = datetime.datetime.strptime(f'{entry["End Date"]} {entry["End Time"]}', '%m/%d/%Y %I:%M:%S %p')
+        clockify.addEntry(start=start, description=entry.Description, projectName=entry.Project,
+                          userMail="ireallyhateyourservices@gmail.com", workspace=workspace, end=end,
+                          tagNames=entry.Tags.split(', '), billable=True if entry.Billable == 'Yes' else False)
+        logger.info(i)
 
 
 if __name__ == '__main__':
