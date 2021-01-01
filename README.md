@@ -1,2 +1,2 @@
-# clockify-automation
-Useful tools to make the most out of Clockify
+# Clockify automation
+Useful tools to make the most out of Clockify.
