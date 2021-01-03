@@ -6,6 +6,7 @@ __copyright__ = "Copyright 2019, pieye GmbH (www.pieye.org)"
 __maintainer__ = "Markus Proeller"
 __email__ = "markus.proeller@pieye.org"
 
+import datetime
 import json
 import logging
 import time
@@ -681,6 +682,7 @@ class ClockifyAPI:
 
             startTime = start.strftime('%Y-%m-%dT%H:%M:%SZ')
             if end != None:
+                end_plus = (end + datetime.timedelta(hours=3)).strftime('%Y-%m-%dT%H:%M:%SZ')
                 end = end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
             params = {
@@ -703,7 +705,7 @@ class ClockifyAPI:
                 params["tagIds"] = tagIDs
 
             rv, entr = self.getTimeEntryForUser(userMail, workspace, description, projectName,
-                                                start, timeZone=timeZone)
+                                                start, timeZone=timeZone, end=end_plus)
 
             if rv == RetVal.OK:
                 if entr != []:
@@ -757,7 +759,7 @@ class ClockifyAPI:
         return rv, data
 
     def getTimeEntryForUser(self, userMail, workspace, description,
-                            projectName, start, timeZone="Z"):
+                            projectName, start, timeZone="Z", end=None):
         data = None
         rv = self._loadUser(userMail)
 
@@ -776,6 +778,8 @@ class ClockifyAPI:
                 params["start"] = start
             if projectName != None:
                 params["project"] = prjID
+            if end:
+                params["end"] = end
 
             rv = self._request(url, body=params, typ="GET")
             if rv.ok:
