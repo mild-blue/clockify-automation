@@ -679,9 +679,9 @@ class ClockifyAPI:
                 taskId = None
                 self.logger.info("no project in entry %s" % description)
 
-            startTime = start.isoformat() + timeZone
+            startTime = start.strftime('%Y-%m-%dT%H:%M:%SZ')
             if end != None:
-                end = end.isoformat() + timeZone
+                end = end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
             params = {
                 "start": startTime,
@@ -768,7 +768,7 @@ class ClockifyAPI:
             if projectName != None:
                 prjID = self.getProjectID(projectName, workspace)
             if start != None:
-                start = start.isoformat() + timeZone
+                start = start.strftime('%Y-%m-%dT%H:%M:%SZ')
 
             url = self.url + "/workspaces/%s/user/%s/time-entries" % (wsId, uId)
             params = {"description": description}
