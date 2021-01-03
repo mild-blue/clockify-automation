@@ -716,6 +716,8 @@ class ClockifyAPI:
                         if params["start"] != d['timeInterval']["start"]:
                             anyDiff = True
                         #                            self.logger.info("entry diff @start: %s %s"%(str(params["start"]), str(d['timeInterval']["start"])))
+                        if params["end"] != d['timeInterval']["end"]:
+                            anyDiff = True
                         if 'projectId' in params:
                             if params["projectId"] != d['projectId']:
                                 anyDiff = True
