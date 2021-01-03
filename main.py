@@ -22,7 +22,7 @@ logger.addHandler(fileHandler)
 
 clockifyReqTimeout = 1
 fallbackUserMail = None
-workspace = "cl_test"
+workspace = "Mild Blue"
 
 
 def load_clockify_api_data() -> Optional[Tuple[List[str], str]]:
@@ -78,7 +78,7 @@ def main():
     clockify = ClockifyAPI(clockify_tokens, clockify_admin, reqTimeout=clockifyReqTimeout,
                            fallbackUserMail=fallbackUserMail)
     clockify.getProjects(workspace=workspace)
-    clockify.deleteEntriesOfUser("ireallyhateyourservices@gmail.com", workspace)
+    # clockify.deleteEntriesOfUser("ireallyhateyourservices@gmail.com", workspace)
 
     time_entries = pd.read_csv("Clockify_Detailed_Report_01_01_2020-12_31_2020_noTK.csv")
     for i, entry in time_entries.iterrows():
@@ -89,7 +89,7 @@ def main():
         tags = entry.Tags.split(', ') if isinstance(entry.Tags, str) else None
         billable = entry.Billable == 'Yes' or (tags is not None and 'billable' in tags)
         clockify.addEntry(start=start, description=entry.Description, projectName=entry.Project,
-                          userMail="ireallyhateyourservices@gmail.com", workspace=workspace, end=end,
+                          userMail=entry.Email, workspace=workspace, end=end,
                           tagNames=tags, billable=billable)
         logger.info(i)
 
