@@ -6,6 +6,7 @@ __copyright__ = "Copyright 2019, pieye GmbH (www.pieye.org)"
 __maintainer__ = "Markus Proeller"
 __email__ = "markus.proeller@pieye.org"
 
+import datetime
 import json
 import logging
 import time
@@ -679,9 +680,10 @@ class ClockifyAPI:
                 taskId = None
                 self.logger.info("no project in entry %s" % description)
 
-            startTime = start.isoformat() + timeZone
+            startTime = start.strftime('%Y-%m-%dT%H:%M:%SZ')
             if end != None:
-                end = end.isoformat() + timeZone
+                end_plus = (end + datetime.timedelta(hours=3)).strftime('%Y-%m-%dT%H:%M:%SZ')
+                end = end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
             params = {
                 "start": startTime,
@@ -703,7 +705,7 @@ class ClockifyAPI:
                 params["tagIds"] = tagIDs
 
             rv, entr = self.getTimeEntryForUser(userMail, workspace, description, projectName,
-                                                start, timeZone=timeZone)
+                                                start, timeZone=timeZone, end=end_plus)
 
             if rv == RetVal.OK:
                 if entr != []:
@@ -714,6 +716,8 @@ class ClockifyAPI:
                         if params["start"] != d['timeInterval']["start"]:
                             anyDiff = True
                         #                            self.logger.info("entry diff @start: %s %s"%(str(params["start"]), str(d['timeInterval']["start"])))
+                        if params["end"] != d['timeInterval']["end"]:
+                            anyDiff = True
                         if 'projectId' in params:
                             if params["projectId"] != d['projectId']:
                                 anyDiff = True
@@ -757,7 +761,7 @@ class ClockifyAPI:
         return rv, data
 
     def getTimeEntryForUser(self, userMail, workspace, description,
-                            projectName, start, timeZone="Z"):
+                            projectName, start, timeZone="Z", end=None):
         data = None
         rv = self._loadUser(userMail)
 
@@ -768,7 +772,7 @@ class ClockifyAPI:
             if projectName != None:
                 prjID = self.getProjectID(projectName, workspace)
             if start != None:
-                start = start.isoformat() + timeZone
+                start = start.strftime('%Y-%m-%dT%H:%M:%SZ')
 
             url = self.url + "/workspaces/%s/user/%s/time-entries" % (wsId, uId)
             params = {"description": description}
@@ -776,6 +780,8 @@ class ClockifyAPI:
                 params["start"] = start
             if projectName != None:
                 params["project"] = prjID
+            if end:
+                params["end"] = end
 
             rv = self._request(url, body=params, typ="GET")
             if rv.ok:
