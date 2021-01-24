@@ -24,7 +24,7 @@ logger.addHandler(fileHandler)
 CSV_DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 config = {}
-with open('config_mp.json') as config_file:
+with open('config.json') as config_file:
     config = json.load(config_file)
 
 
