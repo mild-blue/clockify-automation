@@ -2,6 +2,7 @@ import csv
 import datetime
 import json
 import logging
+import os
 from dataclasses import dataclass
 from toggl.TogglPy import Toggl
 from typing import Optional
@@ -68,7 +69,7 @@ def main():
 
             tags = list(filter(lambda x: x.strip() != '', row['Tags'].split(',')))
 
-            billable = 'billable' in row['Tags'] and 'non-billable' not in row['Tags']
+            billable = 'billable' in tags and 'non-billable' not in tags
 
             logger.info(row)
 
@@ -78,6 +79,9 @@ def main():
                                   tagNames=tags, billable=billable)
             else:
                 logger.info("Dry run - nothing is sent to Clockify.")
+
+    if os.path.exists(file_name):
+        os.remove(file_name)
 
 
 if __name__ == '__main__':
