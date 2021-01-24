@@ -1,5 +1,8 @@
-# Clockify automation
-Useful tools to make the most out of Clockify.
+# Toggle to Clockify
 
-It is based on https://github.com/pieye/toggl2clockify and significant part of the code is just copied from there. 
-Credits to Markus Proeller, markus.proeller@pieye.org.
+## Setup
+
+* Create virtual env: `python -m venv venv` and activate it: `. ./venv/bin/activate `.
+* Install requirements: `pip install -r requirements.txt`.
+* Set proper values in `config.json`.
+* Run it: `python main.py`

@@ -82,7 +82,7 @@ class ClockifyAPI:
         self._APIusers = []
         adminFound = False
         fallbackFound = False
-        for token in apiToken:
+        for token in [apiToken]:
             self.logger.info("testing clockify APIKey %s" % token)
 
             self.apiToken = token
