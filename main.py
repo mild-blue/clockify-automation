@@ -1,10 +1,12 @@
+import csv
 import datetime
 import json
 import logging
 import os
-from typing import Tuple, Optional, List
-
-import pandas as pd
+from dataclasses import dataclass
+from toggl.TogglPy import Toggl
+from typing import Optional
+from uuid import uuid4
 
 from ClockifyAPI import ClockifyAPI
 
@@ -20,78 +22,66 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 logger.addHandler(fileHandler)
 
-clockifyReqTimeout = 1
-fallbackUserMail = None
-workspace = "Mild Blue"
+CSV_DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+config = {}
+with open('config.json') as config_file:
+    config = json.load(config_file)
 
 
-def load_clockify_api_data() -> Optional[Tuple[List[str], str]]:
-    f_name = os.path.abspath("config.json")
-    try:
-        f = open(f_name, "r")
-    except FileNotFoundError:
-        logger.error("file %s not found" % f_name)
-        return None
-
-    try:
-        data = json.load(f)
-    except Exception as e:
-        logger.error("reading content of json file %s failed with msg: %s" % (f_name, str(e)))
-        return None
-
-    if "ClockifyKeys" not in data:
-        logger.error("json entry 'ClockifyKeys' missing in file %s" % f_name)
-        return None
-
-    clockify_tokens = data["ClockifyKeys"]
-    if not isinstance(clockify_tokens, list):
-        logger.error("json entry 'ClockifyKeys' must be a list of strings")
-        return None
-
-    if "Workspaces" in data:
-        workspaces = data["Workspaces"]
-        if not isinstance(workspaces, list):
-            logger.error("json entry 'Workspaces' must be a list")
-            return None
-    else:
-        workspaces = None
-
-    if "ClockifyAdmin" not in data:
-        logger.error("json entry 'ClockifyAdmin' missing in file %s" % f_name)
-        return None
-    else:
-        clockify_admin = data["ClockifyAdmin"]
-        if not isinstance(clockify_admin, str):
-            logger.error("json entry 'ClockifyAdmin' must be a string")
-            return None
-
-    if "FallbackUserMail" in data:
-        fallback_user_email = data["FallbackUserMail"]
-    else:
-        fallback_user_email = None
-
-    return clockify_tokens, clockify_admin
+@dataclass
+class ServiceSettings:
+    token: str
+    workspace: str
+    email: Optional[str] = None
 
 
 def main():
-    clockify_tokens, clockify_admin = load_clockify_api_data()
-    clockify = ClockifyAPI(clockify_tokens, clockify_admin, reqTimeout=clockifyReqTimeout,
-                           fallbackUserMail=fallbackUserMail)
-    clockify.getProjects(workspace=workspace)
-    # clockify.deleteEntriesOfUser("ireallyhateyourservices@gmail.com", workspace)
+    clockify_settings = ServiceSettings(config["ClockifyApiKey"],
+                                        config["ClockifyWorkspace"],
+                                        config["ClockifyAdminEmail"])
+    toggle_settings = ServiceSettings(config["ToggleApiKey"], config["ToggleWorkspace"])
 
-    time_entries = pd.read_csv("Clockify_Detailed_Report_01_01_2020-12_31_2020_noTK.csv")
-    for i, entry in time_entries.iterrows():
-        start = datetime.datetime.strptime(f'{entry["Start Date"]} {entry["Start Time"]}', '%m/%d/%Y %I:%M:%S %p') \
-            .astimezone(datetime.timezone.utc)
-        end = datetime.datetime.strptime(f'{entry["End Date"]} {entry["End Time"]}', '%m/%d/%Y %I:%M:%S %p') \
-            .astimezone(datetime.timezone.utc)
-        tags = entry.Tags.split(', ') if isinstance(entry.Tags, str) else None
-        billable = entry.Billable == 'Yes' or (tags is not None and 'billable' in tags)
-        clockify.addEntry(start=start, description=entry.Description, projectName=entry.Project,
-                          userMail=entry.Email, workspace=workspace, end=end,
-                          tagNames=tags, billable=billable)
-        logger.info(i)
+    clockify = ClockifyAPI(clockify_settings.token, clockify_settings.email, reqTimeout=1)
+    clockify.getProjects(workspace=clockify_settings.workspace)
+
+    toggl = Toggl()
+    toggl.setAPIKey(config["ToggleApiKey"])
+
+    wid = [w['id'] for w in toggl.getWorkspaces() if w['name'] == toggle_settings.workspace][0]
+    start = config["From"]
+    end = config["To"]
+    csv_filter = {
+        'workspace_id': wid,  # see the next example for getting a workspace id
+        'since': start,
+        'until': end,
+    }
+    file_name = f'{uuid4()}.csv'
+    toggl.getDetailedReportCSV(csv_filter, file_name)
+
+    with open(file_name, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            start = datetime.datetime.strptime(f'{row["Start date"]} {row["Start time"]}', CSV_DATE_TIME_FORMAT) \
+                .astimezone(datetime.timezone.utc)
+            end = datetime.datetime.strptime(f'{row["End date"]} {row["End time"]}', CSV_DATE_TIME_FORMAT) \
+                .astimezone(datetime.timezone.utc)
+
+            tags = list(filter(lambda x: x.strip() != '', row['Tags'].split(',')))
+
+            billable = 'billable' in tags and 'non-billable' not in tags
+
+            logger.info(row)
+
+            if not config["DryRun"]:
+                clockify.addEntry(start=start, description=row['Description'], projectName=row['Project'],
+                                  userMail=clockify_settings.email, workspace=clockify_settings.workspace, end=end,
+                                  tagNames=tags, billable=billable)
+            else:
+                logger.info("Dry run - nothing is sent to Clockify.")
+
+    if os.path.exists(file_name):
+        os.remove(file_name)
 
 
 if __name__ == '__main__':
