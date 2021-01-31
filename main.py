@@ -62,6 +62,9 @@ def main():
     with open(file_name, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
+            if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
+                continue
+
             start = datetime.datetime.strptime(f'{row["Start date"]} {row["Start time"]}', CSV_DATE_TIME_FORMAT) \
                 .astimezone(datetime.timezone.utc)
             end = datetime.datetime.strptime(f'{row["End date"]} {row["End time"]}', CSV_DATE_TIME_FORMAT) \
