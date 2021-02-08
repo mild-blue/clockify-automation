@@ -4,9 +4,10 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from toggl.TogglPy import Toggl
 from typing import Optional
 from uuid import uuid4
+
+from toggl.TogglPy import Toggl
 
 from ClockifyAPI import ClockifyAPI
 
@@ -24,7 +25,6 @@ logger.addHandler(fileHandler)
 
 CSV_DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-config = {}
 with open('config.json') as config_file:
     config = json.load(config_file)
 
@@ -62,16 +62,22 @@ def main():
     with open(file_name, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
+            if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
+                continue
+
+            logger.info(row)
+
             start = datetime.datetime.strptime(f'{row["Start date"]} {row["Start time"]}', CSV_DATE_TIME_FORMAT) \
                 .astimezone(datetime.timezone.utc)
             end = datetime.datetime.strptime(f'{row["End date"]} {row["End time"]}', CSV_DATE_TIME_FORMAT) \
                 .astimezone(datetime.timezone.utc)
 
-            tags = list(filter(lambda x: x.strip() != '', row['Tags'].split(',')))
+            tags = [tag.strip() for tag in row['Tags'].split(',') if tag.strip() != '']
 
-            billable = 'billable' in tags and 'non-billable' not in tags
-
-            logger.info(row)
+            # tag billable if there's a tag billable
+            billable = 'billable' in tags
+            # remove billable and non-billable tags as we don't need them anymore
+            tags = [tag for tag in tags if tag not in {'non-billable', 'billable'}]
 
             if not config["DryRun"]:
                 clockify.addEntry(start=start, description=row['Description'], projectName=row['Project'],

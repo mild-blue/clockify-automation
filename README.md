@@ -6,3 +6,32 @@
 * Install requirements: `pip install -r requirements.txt`.
 * Set proper values in `config.json`.
 * Run it: `python main.py`
+
+## Configuration
+- `ClockifyApiKey` - API key to your account in clockify
+- `ClockifyAdminEmail` - email of the person you want to assign the time entries (usually your own email)
+- `ClockifyWorkspace` - Clockify workspace
+- `ToggleApiKey` - API key for Toggle
+- `ToggleWorkspace` - Toggle workspace
+- `ToggleFilterClient` - if you use a personal workspace and have just one client for all projects and want to filter by that one - fill the name, otherwise leave empty
+- `From` - from when start exporting the data in format `YYYY-MM-DD`
+- `To` - end date for data export in format `YYYY-MM-DD`
+- `DryRun` - if true, it does not export data to Clockify, just prints them to console
+
+#### Example config
+When your Clockify account is `mygmail+clockify@gmail.com`, target clockify workspace is `Mild Blue` and 
+source Toggle workspace is `Personal` with client `Mild Blue`.
+```json
+{
+    "ClockifyApiKey": "xxxxxxxxxxxxxxxxxx",
+    "ClockifyAdminEmail": "mygmail+clockify@gmail.com",
+    "ClockifyWorkspace": "Mild Blue",
+    "ToggleApiKey": "yyyyyyyyyyyyyyyyyyyyyyyyyy",
+    "ToggleWorkspace": "Personal",
+    "ToggleFilterClient": "Mild Blue",
+    "From": "2021-01-01",
+    "To": "2021-01-31",
+    "DryRun": false
+}
+
+```

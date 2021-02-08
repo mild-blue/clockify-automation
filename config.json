@@ -4,6 +4,7 @@
     "ClockifyWorkspace": "SET_ME",
     "ToggleApiKey": "SET_ME",
     "ToggleWorkspace": "SET_ME",
+    "ToggleFilterClient": "",
     "From": "YYYY-MM-DD",
     "To": "YYYY-MM-DD",
     "DryRun": false
