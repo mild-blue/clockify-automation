@@ -7,7 +7,7 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 
 * Create virtual env: `python -m venv venv` and activate it: `. ./venv/bin/activate `.
 * Install requirements: `pip install -r requirements.txt`.
-* Set proper values in `config.json`.
+* Set proper values in `config.json`, use `config_example.json` as a base.
 * Run it: `python main.py`
 
 ## Configuration
