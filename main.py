@@ -66,9 +66,9 @@ def main():
     toggl.getDetailedReportCSV(csv_filter, file_name)
 
     # uncomment if you want to first delete your entries
-    # delete_entries(clockify, clockify_settings, start)
+    # delete_entries(clockify, clockify_settings, '2021-01-01 00:00:00')
 
-    with open(file_name, newline='') as csvfile:
+    with open(file_name, newline='', encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
