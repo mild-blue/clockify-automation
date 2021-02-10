@@ -64,6 +64,8 @@ def main():
         for row in reader:
             if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
                 continue
+            if config['ClockifyAdminEmail'] != row['Email']:
+                continue
 
             logger.info(row)
 
