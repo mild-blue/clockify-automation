@@ -36,9 +36,9 @@ class ServiceSettings:
     email: Optional[str] = None
 
 
-def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, start: str):
+def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, from_datetime: str):
     clockify.deleteEntriesOfUser(clockify_settings.email, clockify_settings.workspace,
-                                 datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT).astimezone(
+                                 datetime.datetime.strptime(from_datetime, CSV_DATE_TIME_FORMAT).astimezone(
                                      datetime.timezone.utc))
 
 
