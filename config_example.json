@@ -1,11 +1,13 @@
 {
-    "ClockifyApiKey": "SET_ME",
-    "ClockifyAdminEmail": "SET_ME",
-    "ClockifyWorkspace": "SET_ME",
-    "ToggleApiKey": "SET_ME",
-    "ToggleWorkspace": "SET_ME",
-    "ToggleFilterClient": "",
-    "From": "YYYY-MM-DD",
-    "To": "YYYY-MM-DD",
-    "DryRun": false
+  "ClockifyApiKey": "SET_ME",
+  "ClockifyAdminEmail": "SET_ME",
+  "ClockifyWorkspace": "SET_ME",
+  "ToggleApiKey": "SET_ME",
+  "ToggleWorkspace": "SET_ME",
+  "ToggleFilterClient": "",
+  "ToggleFilterUser": "",
+  "From": "YYYY-MM-DD",
+  "To": "YYYY-MM-DD",
+  "DeleteExistingFrom": false,
+  "DryRun": false
 }
