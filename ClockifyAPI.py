@@ -807,9 +807,9 @@ class ClockifyAPI:
 
         return rv
 
-    def deleteEntriesOfUser(self, userMail, workspace):
+    def deleteEntriesOfUser(self, userMail, workspace, start=None):
         while True:
-            rv, entries = self.getTimeEntryForUser(userMail, workspace, "", None, None, "")
+            rv, entries = self.getTimeEntryForUser(userMail, workspace, "", None, start, "")
             numEntries = 0
             if rv == RetVal.OK:
                 curUser = self._loadedUserEmail

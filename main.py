@@ -36,6 +36,12 @@ class ServiceSettings:
     email: Optional[str] = None
 
 
+def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, from_datetime: str):
+    clockify.deleteEntriesOfUser(clockify_settings.email, clockify_settings.workspace,
+                                 datetime.datetime.strptime(from_datetime, CSV_DATE_TIME_FORMAT).astimezone(
+                                     datetime.timezone.utc))
+
+
 def main():
     clockify_settings = ServiceSettings(config["ClockifyApiKey"],
                                         config["ClockifyWorkspace"],
@@ -59,10 +65,15 @@ def main():
     file_name = f'{uuid4()}.csv'
     toggl.getDetailedReportCSV(csv_filter, file_name)
 
-    with open(file_name, newline='') as csvfile:
+    # uncomment if you want to first delete your entries
+    # delete_entries(clockify, clockify_settings, '2021-01-01 00:00:00')
+
+    with open(file_name, newline='', encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
+                continue
+            if config['ClockifyAdminEmail'] != row['Email']:
                 continue
 
             logger.info(row)

@@ -129,9 +129,8 @@ dmypy.json
 .pyre/
 
 .idea
-config_*.json
+config.json
 *.csv
 log.txt
 clockify_projects.json
 clockify_tags.json
-.config.json
