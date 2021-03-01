@@ -24,9 +24,9 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
   users in one workspace, and you want to export just one
 - `From` - from when start exporting the data in format `YYYY-MM-DD`
 - `To` - end date for data export in format `YYYY-MM-DD`
-- `DeleteExistingFrom` - delete all entries from Clockify starting from the `From` date (*NOTE: that it even deletes
+- `DeleteExistingFrom` - if `true`, it deletes all entries from Clockify starting from the `From` date (*NOTE: that it even deletes
   entries with date `>= To`*)
-- `DryRun` - if true, it does not export data to Clockify, just prints them to console
+- `DryRun` - if `true`, it does not export data to Clockify, just prints them to console
 
 #### Example config
 
