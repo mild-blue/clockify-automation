@@ -20,14 +20,18 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 - `ToggleWorkspace` - Toggle workspace
 - `ToggleFilterClient` - if you use a personal workspace and have just one client for all projects and want to filter by
   that one - fill the name, otherwise leave empty
+- `ToggleFilterUser` - filter Toggle user - same as `ToggleFilterClient` but for the user, useful when there are more
+  users in one workspace, and you want to export just one
 - `From` - from when start exporting the data in format `YYYY-MM-DD`
 - `To` - end date for data export in format `YYYY-MM-DD`
-- `DryRun` - if true, it does not export data to Clockify, just prints them to console
+- `DeleteExistingFrom` - if `true`, it deletes all entries from Clockify starting from the `From` date (*NOTE: that it even deletes
+  entries with date `>= To`*)
+- `DryRun` - if `true`, it does not export data to Clockify, just prints them to console
 
 #### Example config
 
 When your Clockify account is `mygmail+clockify@gmail.com`, target clockify workspace is `Mild Blue` and source Toggle
-workspace is `Personal` with client `Mild Blue`.
+workspace is `Personal` with client `Mild Blue` and user `mygmail+toggl@gmail.com`.
 
 ```json
 {
@@ -37,8 +41,10 @@ workspace is `Personal` with client `Mild Blue`.
   "ToggleApiKey": "yyyyyyyyyyyyyyyyyyyyyyyyyy",
   "ToggleWorkspace": "Personal",
   "ToggleFilterClient": "Mild Blue",
+  "ToggleFilterUser": "mygmail+toggl@gmail.com",
   "From": "2021-01-01",
   "To": "2021-01-31",
+  "DeleteExistingFrom": false,
   "DryRun": false
 }
 
