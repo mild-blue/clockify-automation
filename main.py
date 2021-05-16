@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import uuid4
 
-from toggl.TogglPy import Toggl
+from toggl.TogglPy import Toggl, Endpoints
 
 from ClockifyAPI import ClockifyAPI
 
@@ -59,6 +59,9 @@ def main():
 
     clockify = ClockifyAPI(clockify_settings.token, clockify_settings.email, reqTimeout=1)
     clockify.getProjects(workspace=clockify_settings.workspace)
+
+    Endpoints.WORKSPACES = Endpoints.WORKSPACES.replace('www.toggl.com', 'api.track.toggl.com')
+    Endpoints.REPORT_DETAILED = Endpoints.REPORT_DETAILED.replace('www.toggl.com', 'api.track.toggl.com')
 
     toggl = Toggl()
     toggl.setAPIKey(config['ToggleApiKey'])

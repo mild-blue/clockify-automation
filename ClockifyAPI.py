@@ -67,8 +67,8 @@ class MemberShip:
 class ClockifyAPI:
     def __init__(self, apiToken, adminEmail="", reqTimeout=0.01, fallbackUserMail=None):
         self.logger = logging.getLogger('clockify-automation')
-        self.url = 'https://clockify.me/api/v1'
-        self.urlWorking = 'https://api.clockify.me/api/'
+        self.url = 'https://api.clockify.me/api/v1'
+        self.urlWorking = 'https://api.clockify.me/api/v1'
         self._syncClients = True
         self._syncUsers = True
         self._syncProjects = True
