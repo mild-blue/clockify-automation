@@ -61,7 +61,7 @@ def main():
     clockify.getProjects(workspace=clockify_settings.workspace)
 
     Endpoints.WORKSPACES = Endpoints.WORKSPACES.replace('www.toggl.com', 'api.track.toggl.com')
-    Endpoints.REPORT_DETAILED = Endpoints.REPORT_DETAILED.replace('www.toggl.com', 'api.track.toggl.com')
+    Endpoints.REPORT_DETAILED = Endpoints.REPORT_DETAILED.replace('toggl.com', 'api.track.toggl.com')
 
     toggl = Toggl()
     toggl.setAPIKey(config['ToggleApiKey'])
