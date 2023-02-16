@@ -123,7 +123,7 @@ def main():
     )
 
     clockify = ClockifyAPI(clockify_settings.token, clockify_settings.email, reqTimeout=1)
-    clockify.getProjects(workspace=clockify_settings.workspace)
+    clockify.getProjects(workspace_name=clockify_settings.workspace)
 
     toggle_base_url = 'https://api.track.toggl.com/api/v9'
 
@@ -177,8 +177,14 @@ def main():
 
         tags = [tag.strip() for tag in row['tags'] if tag.strip() != '']
 
-        # tag billable if there's a tag billable
-        billable = 'billable' in tags
+        # tag billable if there's a tag else set default for the project
+            project = clockify.get_project(row['project_name'], clockify_settings.workspace)
+            if 'billable' in tags:
+                billable = True
+            elif 'non-billable' in tags:
+                billable = False
+            else:
+                billable = project["billable"]
         # remove billable and non-billable tags as we don't need them anymore
         tags = [tag for tag in tags if tag not in {'non-billable', 'billable'}]
 
