@@ -5,8 +5,7 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 
 ## Setup
 
-* Create virtual env: `python -m venv venv` and activate it: `. ./venv/bin/activate `.
-* Install requirements: `pip install -r requirements.txt`.
+* Create virtual env in conda, use `make conda-create` then activate the environment via `conda activate clockify-automation`
 * Set proper values in `config.json`, use `config_example.json` as a base.
 * Run it: `python main.py`
 
