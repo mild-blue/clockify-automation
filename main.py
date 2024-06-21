@@ -73,7 +73,7 @@ def main():
     toggle_base_url = 'https://api.track.toggl.com/api/v9'
     toggle_reports_url = f'{toggle_base_url}/reports/api/v2'
 
-    email = config['ToggleFilterUser']
+    email = config['ToggleUser']
     password = config['TogglePassword']
     auth_string = f"{email}:{password}"
     encoded_auth_string = base64.b64encode(auth_string.encode("ascii")).decode("ascii")
