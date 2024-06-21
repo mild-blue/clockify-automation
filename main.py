@@ -43,6 +43,14 @@ def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, fr
         datetime.datetime.strptime(from_datetime, CSV_DATE_TIME_FORMAT).astimezone(datetime.timezone.utc)
     )
 
+def get_target_workspace_id(workspace_name: str, headers: dict):
+    response = requests.get('https://api.track.toggl.com/api/v9/workspaces', headers=headers)
+    response.raise_for_status()
+    workspaces = response.json()
+    for workspace in workspaces:
+        if workspace['name'] == workspace_name:
+            return str(workspace['id'])
+    return None
 
 def main():
     clockify_settings = ServiceSettings(
@@ -77,11 +85,10 @@ def main():
     # get time entries
     file_name = f'{uuid4()}.csv'
     try:
-        report_response = requests.get(f'{toggle_base_url}/me/time_entries', headers=headers)
+        report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
         report_response.raise_for_status()
         report_data = report_response.json()
-        print(len(report_data))
-        print(report_data)
+
         with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=report_data[0].keys())
             writer.writeheader()
@@ -96,11 +103,10 @@ def main():
     with open(file_name, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            #TODO check if the row is valid according to filters for user and workspace in config.json
-            #if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
-            #    continue
-            #if config.get('ToggleFilterUser') and config['ToggleFilterUser'] != row['Email']:
-            #    continue
+            if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
+                continue
+            if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
+                continue
             if row["stop"] == "":
                 continue
             
@@ -123,7 +129,7 @@ def main():
                 clockify.addEntry(
                     start=start,
                     description=row['description'],
-                    projectName= "internal", #row['project'], #TODO find where to get project name, i only have project id from csv output
+                    projectName= row['project_name'],
                     userMail=clockify_settings.email,
                     workspace=clockify_settings.workspace,
                     end=end,
