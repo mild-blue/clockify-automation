@@ -6,7 +6,6 @@ import os
 import urllib
 from dataclasses import dataclass
 from typing import Optional
-from uuid import uuid4
 import requests
 from ClockifyAPI import ClockifyAPI
 import base64
@@ -83,27 +82,12 @@ def main():
         'Content-Type': 'application/json'
     }
     # get time entries
-    file_name = f'{uuid4()}.csv'
+
     try:
         report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
         report_response.raise_for_status()
         report_data = report_response.json()
-        for report in report_data:
-            if report['start'] < config['From']:
-                report_data.remove(report)
-                continue
-            if  report['stop'] >= config['To']: 
-                report_data.remove(report)
-                continue
-            description = report['description']
-            start = report['start']
-            if report['project_id'] == None:
-                raise Exception(f'task "{description}" from {start} has no assigned project (project_id is None)')
 
-        with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=report_data[0].keys())
-            writer.writeheader()
-            writer.writerows(report_data)
     except requests.exceptions.RequestException as e:
         logger.error(f'Error while getting data from Toggl: {str(e)}')
         return
@@ -111,46 +95,45 @@ def main():
     if config.get('DeleteExistingFrom') is True and config.get('DryRun') is False:
         delete_entries(clockify, clockify_settings, f'{config["From"]} 00:00:00')
 
-    with open(file_name, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
-                continue
-            if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
-                continue
-            
-            if row['stop'] == '':
-                continue
-            
-            logger.info(row)
+    for row in report_data:
+        print(row)
+        if row['start'] < config['From']:
+            continue
+        if  row['stop'] > config['To']: 
+            continue
+        if row['stop'] == '': # if task is still running
+            continue
+        if int(row['workspace_id']) != int(get_target_workspace_id(toggle_settings.workspace, headers)):
+            continue
+        if row['project_id'] == None:
+            raise Exception(f'task "{report["description"]}" from {report["start"]} has no assigned project (project_id is None)')
+        if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
+            continue
 
-            start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
-            start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
-            end = datetime.datetime.strptime(row["stop"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
-            end = datetime.datetime.strptime(end, CSV_DATE_TIME_FORMAT)
+        start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
+        start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
+        end = datetime.datetime.strptime(row["stop"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
+        end = datetime.datetime.strptime(end, CSV_DATE_TIME_FORMAT)
 
-            tags = [tag.strip() for tag in row['tags'].split(',') if tag.strip() != '']
+        tags = [tag.strip() for tag in row['tags'] if tag.strip() != '']
 
-            # tag billable if there's a tag billable
-            billable = 'billable' in tags
-            # remove billable and non-billable tags as we don't need them anymore
-            tags = [tag for tag in tags if tag not in {'non-billable', 'billable'}]
+        # tag billable if there's a tag billable
+        billable = 'billable' in tags
+        # remove billable and non-billable tags as we don't need them anymore
+        tags = [tag for tag in tags if tag not in {'non-billable', 'billable'}]
 
-            if config.get('DryRun') is False:
-                clockify.addEntry(
-                    start=start,
-                    description=row['description'],
-                    projectName= row['project_name'],
-                    userMail=clockify_settings.email,
-                    workspace=clockify_settings.workspace,
-                    end=end,
-                    billable=billable
-                )
-            else:
-                logger.info('Dry run - nothing is sent to Clockify.')
-
-    if os.path.exists(file_name):
-        os.remove(file_name)
+        if config.get('DryRun') is False:
+            clockify.addEntry(
+                start=start,
+                description=row['description'],
+                projectName= row['project_name'],
+                userMail=clockify_settings.email,
+                workspace=clockify_settings.workspace,
+                end=end,
+                billable=billable
+            )
+        else:
+            logger.info('Dry run - nothing is sent to Clockify.')
 
 if __name__ == '__main__':
     main()
