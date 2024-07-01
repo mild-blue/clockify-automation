@@ -92,7 +92,7 @@ def main():
             if report['start'] < config['From']:
                 report_data.remove(report)
                 continue
-            if  report['stop'] >= config['To'] or report['stop'] == None: 
+            if  report['stop'] >= config['To']: 
                 report_data.remove(report)
                 continue
             description = report['description']
@@ -118,13 +118,14 @@ def main():
                 continue
             if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
                 continue
-
+            
+            if row['stop'] == '':
+                continue
             
             logger.info(row)
 
             start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
             start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
-            
             end = datetime.datetime.strptime(row["stop"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
             end = datetime.datetime.strptime(end, CSV_DATE_TIME_FORMAT)
 
