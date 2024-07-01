@@ -88,9 +88,13 @@ def main():
         report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
         report_response.raise_for_status()
         report_data = report_response.json()
+        print(report_data[0])
+        for report in report_data:
+            if report['project_id'] == None:
+                raise Exception(f'a task has no assigned project (project_id is None)')
 
         with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=report_data[0].keys())
+            writer = csv.DictWriter(csvfile, fieldnames=report_data[3].keys())
             writer.writeheader()
             writer.writerows(report_data)
     except requests.exceptions.RequestException as e:
