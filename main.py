@@ -88,13 +88,20 @@ def main():
         report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
         report_response.raise_for_status()
         report_data = report_response.json()
-        print(report_data[0])
         for report in report_data:
+            if report['start'] < config['From']:
+                report_data.remove(report)
+                continue
+            if  report['stop'] >= config['To'] or report['stop'] == None: 
+                report_data.remove(report)
+                continue
+            description = report['description']
+            start = report['start']
             if report['project_id'] == None:
-                raise Exception(f'a task has no assigned project (project_id is None)')
+                raise Exception(f'task "{description}" from {start} has no assigned project (project_id is None)')
 
         with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=report_data[3].keys())
+            writer = csv.DictWriter(csvfile, fieldnames=report_data[0].keys())
             writer.writeheader()
             writer.writerows(report_data)
     except requests.exceptions.RequestException as e:
@@ -109,14 +116,9 @@ def main():
         for row in reader:
             if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
                 continue
-            if row['start'] < config['From']:
-                continue
-            if row['start'] >= config['To']:
-                continue
             if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
                 continue
-            if row["stop"] == "":
-                continue
+
             
             logger.info(row)
 
