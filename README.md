@@ -5,8 +5,7 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 
 ## Setup
 
-* Create virtual env: `python -m venv venv` and activate it: `. ./venv/bin/activate `.
-* Install requirements: `pip install -r requirements.txt`.
+* Create virtual env in conda, use `make conda-create` then activate the environment via `conda activate clockify-automation`
 * Set proper values in `config.json`, use `config_example.json` as a base.
 * Run it: `python main.py`
 
@@ -20,8 +19,8 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 - `ToggleWorkspace` - Toggle workspace
 - `ToggleFilterClient` - if you use a personal workspace and have just one client for all projects and want to filter by
   that one - fill the name, otherwise leave empty
-- `ToggleFilterUser` - filter Toggle user - same as `ToggleFilterClient` but for the user, useful when there are more
-  users in one workspace, and you want to export just one
+- `ToggleUser` - user whose time entries we want to acces
+- `TogglePassword` / users password to log into Toggl
 - `From` - from when start exporting the data in format `YYYY-MM-DD`
 - `To` - end date for data export in format `YYYY-MM-DD`
 - `DeleteExistingFrom` - if `true`, it deletes all entries from Clockify starting from the `From` date (*NOTE: that it even deletes
@@ -41,7 +40,8 @@ workspace is `Personal` with client `Mild Blue` and user `mygmail+toggl@gmail.co
   "ToggleApiKey": "yyyyyyyyyyyyyyyyyyyyyyyyyy",
   "ToggleWorkspace": "Personal",
   "ToggleFilterClient": "Mild Blue",
-  "ToggleFilterUser": "mygmail+toggl@gmail.com",
+  "ToggleUser": "mygmail+toggl@gmail.com",
+  "TogglePassword": "My Toggl password",
   "From": "2021-01-01",
   "To": "2021-01-31",
   "DeleteExistingFrom": false,

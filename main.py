@@ -7,10 +7,9 @@ import urllib
 from dataclasses import dataclass
 from typing import Optional
 from uuid import uuid4
-
-from toggl.TogglPy import Toggl, Endpoints
-
+import requests
 from ClockifyAPI import ClockifyAPI
+import base64
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 
@@ -44,6 +43,14 @@ def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, fr
         datetime.datetime.strptime(from_datetime, CSV_DATE_TIME_FORMAT).astimezone(datetime.timezone.utc)
     )
 
+def get_target_workspace_id(workspace_name: str, headers: dict):
+    response = requests.get('https://api.track.toggl.com/api/v9/workspaces', headers=headers)
+    response.raise_for_status()
+    workspaces = response.json()
+    for workspace in workspaces:
+        if workspace['name'] == workspace_name:
+            return str(workspace['id'])
+    return None
 
 def main():
     clockify_settings = ServiceSettings(
@@ -58,28 +65,36 @@ def main():
     )
 
     clockify = ClockifyAPI(clockify_settings.token, clockify_settings.email, reqTimeout=1)
-    clockify.getProjects(workspace=clockify_settings.workspace)
+    clockify.getProjects(workspace_name=clockify_settings.workspace)
 
-    Endpoints.WORKSPACES = Endpoints.WORKSPACES.replace('www.toggl.com', 'api.track.toggl.com')
-    Endpoints.REPORT_DETAILED = Endpoints.REPORT_DETAILED.replace('toggl.com', 'api.track.toggl.com')
+    toggle_api_key = config['ToggleApiKey']
+    toggle_workspace = config['ToggleWorkspace']
 
-    toggl = Toggl()
-    toggl.setAPIKey(config['ToggleApiKey'])
+    toggle_base_url = 'https://api.track.toggl.com/api/v9'
+    toggle_reports_url = f'{toggle_base_url}/reports/api/v2'
 
-    wid = [w['id'] for w in toggl.getWorkspaces() if w['name'] == toggle_settings.workspace][0]
-    start = config['From']
-    end = config['To']
-    csv_filter = {
-        'workspace_id': wid,  # see the next example for getting a workspace id
-        'since': start,
-        'until': end,
+    email = config['ToggleUser']
+    password = config['TogglePassword']
+    auth_string = f"{email}:{password}"
+    encoded_auth_string = base64.b64encode(auth_string.encode("ascii")).decode("ascii")
+
+    headers = {
+        'Authorization': f'Basic {encoded_auth_string}',
+        'Content-Type': 'application/json'
     }
+    # get time entries
     file_name = f'{uuid4()}.csv'
     try:
-        toggl.getDetailedReportCSV(csv_filter, file_name)
-    except urllib.error.HTTPError as e:
-        message = e.read().decode()
-        logger.error(f'Error while getting data from Toggl: {message}')
+        report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
+        report_response.raise_for_status()
+        report_data = report_response.json()
+
+        with open(file_name, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=report_data[0].keys())
+            writer.writeheader()
+            writer.writerows(report_data)
+    except requests.exceptions.RequestException as e:
+        logger.error(f'Error while getting data from Toggl: {str(e)}')
         return
 
     if config.get('DeleteExistingFrom') is True and config.get('DryRun') is False:
@@ -88,34 +103,42 @@ def main():
     with open(file_name, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            if config.get('ToggleFilterClient') and config['ToggleFilterClient'] != row['Client']:
+            if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
                 continue
-            if config.get('ToggleFilterUser') and config['ToggleFilterUser'] != row['Email']:
+            if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
                 continue
-
+            if row["stop"] == "":
+                continue
+            
             logger.info(row)
 
-            start = datetime.datetime.strptime(f'{row["Start date"]} {row["Start time"]}', CSV_DATE_TIME_FORMAT) \
-                .astimezone(datetime.timezone.utc)
-            end = datetime.datetime.strptime(f'{row["End date"]} {row["End time"]}', CSV_DATE_TIME_FORMAT) \
-                .astimezone(datetime.timezone.utc)
+            start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
+            start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
+            
+            end = datetime.datetime.strptime(row["stop"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
+            end = datetime.datetime.strptime(end, CSV_DATE_TIME_FORMAT)
 
-            tags = [tag.strip() for tag in row['Tags'].split(',') if tag.strip() != '']
+            tags = [tag.strip() for tag in row['tags'].split(',') if tag.strip() != '']
 
-            # tag billable if there's a tag billable
-            billable = 'billable' in tags
+            # tag billable if there's a tag else set default for the project
+            project = clockify.get_project(row['Project'], clockify_settings.workspace)
+            if 'billable' in tags:
+                billable = True
+            elif 'non-billable' in tags:
+                billable = False
+            else:
+                billable = project["billable"]
             # remove billable and non-billable tags as we don't need them anymore
             tags = [tag for tag in tags if tag not in {'non-billable', 'billable'}]
 
             if config.get('DryRun') is False:
                 clockify.addEntry(
                     start=start,
-                    description=row['Description'],
-                    projectName=row['Project'],
+                    description=row['description'],
+                    projectName= row['project_name'],
                     userMail=clockify_settings.email,
                     workspace=clockify_settings.workspace,
                     end=end,
-                    tagNames=tags,
                     billable=billable
                 )
             else:
@@ -123,7 +146,6 @@ def main():
 
     if os.path.exists(file_name):
         os.remove(file_name)
-
 
 if __name__ == '__main__':
     main()

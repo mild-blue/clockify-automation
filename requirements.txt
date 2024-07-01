@@ -8,5 +8,5 @@ pytz==2020.5
 requests==2.25.1
 six==1.15.0
 slumber==0.7.1
-TogglPy==0.1.1
 urllib3==1.26.5
+base64==1.0.0
