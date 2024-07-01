@@ -74,8 +74,8 @@ def main():
     toggle_reports_url = f'{toggle_base_url}/reports/api/v2'
 
     email = config['ToggleUser']
-    password = config['TogglePassword']
-    auth_string = f"{email}:{password}"
+    token = config['ToggleApiKey']
+    auth_string = f"{token}:api_token"
     encoded_auth_string = base64.b64encode(auth_string.encode("ascii")).decode("ascii")
 
     headers = {
@@ -98,12 +98,16 @@ def main():
         return
 
     if config.get('DeleteExistingFrom') is True and config.get('DryRun') is False:
-        delete_entries(clockify, clockify_settings, f'{start} 00:00:00')
+        delete_entries(clockify, clockify_settings, f'{config["From"]} 00:00:00')
 
     with open(file_name, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
+                continue
+            if row['start'] < config['From']:
+                continue
+            if row['start'] >= config['To']:
                 continue
             if row['workspace_id'] != get_target_workspace_id(toggle_settings.workspace, headers):
                 continue

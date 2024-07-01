@@ -21,7 +21,6 @@ Credits to Markus Proeller, markus.proeller@pieye.org.
 - `ToggleFilterClient` - if you use a personal workspace and have just one client for all projects and want to filter by
   that one - fill the name, otherwise leave empty
 - `ToggleUser` - user whose time entries we want to acces
-- `TogglePassword` / users password to log into Toggl
 - `From` - from when start exporting the data in format `YYYY-MM-DD`
 - `To` - end date for data export in format `YYYY-MM-DD`
 - `DeleteExistingFrom` - if `true`, it deletes all entries from Clockify starting from the `From` date (*NOTE: that it even deletes
@@ -42,7 +41,6 @@ workspace is `Personal` with client `Mild Blue` and user `mygmail+toggl@gmail.co
   "ToggleWorkspace": "Personal",
   "ToggleFilterClient": "Mild Blue",
   "ToggleUser": "mygmail+toggl@gmail.com",
-  "TogglePassword": "My Toggl password",
   "From": "2021-01-01",
   "To": "2021-01-31",
   "DeleteExistingFrom": false,

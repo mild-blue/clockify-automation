@@ -6,7 +6,6 @@
   "ToggleWorkspace": "SET_ME",
   "ToggleFilterClient": "",
   "ToggleUser": "",
-  "TogglePassword": "SET_ME",
   "From": "YYYY-MM-DD",
   "To": "YYYY-MM-DD",
   "DeleteExistingFrom": false,
