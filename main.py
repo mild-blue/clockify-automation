@@ -102,7 +102,8 @@ def main():
             raise Exception(f'task "{row["description"]}" from {row["start"]} has no assigned project (project_id is None)')
         if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
             continue
-        #TODO filtrovat podle usera
+        if config['ToggleFilterUser'] != row['user_name'] and config['ToggleFilterUser'] != '':
+            continue
 
         start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
         start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)

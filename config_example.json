@@ -5,7 +5,7 @@
   "ToggleApiKey": "SET_ME",
   "ToggleWorkspace": "SET_ME",
   "ToggleFilterClient": "",
-  "ToggleUser": "",
+  "ToggleFilterUser": "",
   "From": "YYYY-MM-DD",
   "To": "YYYY-MM-DD",
   "DeleteExistingFrom": false,
