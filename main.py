@@ -66,13 +66,9 @@ def main():
     clockify = ClockifyAPI(clockify_settings.token, clockify_settings.email, reqTimeout=1)
     clockify.getProjects(workspace=clockify_settings.workspace)
 
-    toggle_api_key = config['ToggleApiKey']
-    toggle_workspace = config['ToggleWorkspace']
-
     toggle_base_url = 'https://api.track.toggl.com/api/v9'
     toggle_reports_url = f'{toggle_base_url}/reports/api/v2'
 
-    email = config['ToggleUser']
     token = config['ToggleApiKey']
     auth_string = f"{token}:api_token"
     encoded_auth_string = base64.b64encode(auth_string.encode("ascii")).decode("ascii")
@@ -109,6 +105,7 @@ def main():
             raise Exception(f'task "{report["description"]}" from {report["start"]} has no assigned project (project_id is None)')
         if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
             continue
+        #TODO filtrovat podle usera
 
         start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
         start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
