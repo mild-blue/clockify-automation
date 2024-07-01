@@ -67,7 +67,6 @@ def main():
     clockify.getProjects(workspace=clockify_settings.workspace)
 
     toggle_base_url = 'https://api.track.toggl.com/api/v9'
-    toggle_reports_url = f'{toggle_base_url}/reports/api/v2'
 
     token = config['ToggleApiKey']
     auth_string = f"{token}:api_token"
@@ -78,12 +77,14 @@ def main():
         'Content-Type': 'application/json'
     }
     # get time entries
-
+    params = {
+        'start_date': config['From'],
+        'end_date': config['To']
+    }
     try:
-        report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers)
+        report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers, params=params)
         report_response.raise_for_status()
         report_data = report_response.json()
-
     except requests.exceptions.RequestException as e:
         logger.error(f'Error while getting data from Toggl: {str(e)}')
         return
@@ -93,16 +94,12 @@ def main():
 
     for row in report_data:
         print(row)
-        if row['start'] < config['From']:
-            continue
-        if  row['stop'] > config['To']: 
-            continue
-        if row['stop'] == '': # if task is still running
+        if row['stop'] == None: # if task is still running
             continue
         if int(row['workspace_id']) != int(get_target_workspace_id(toggle_settings.workspace, headers)):
             continue
         if row['project_id'] == None:
-            raise Exception(f'task "{report["description"]}" from {report["start"]} has no assigned project (project_id is None)')
+            raise Exception(f'task "{row["description"]}" from {row["start"]} has no assigned project (project_id is None)')
         if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
             continue
         #TODO filtrovat podle usera
