@@ -1,9 +1,6 @@
-import csv
 import datetime
 import json
 import logging
-import os
-import urllib
 from dataclasses import dataclass
 from typing import Optional
 import requests
@@ -93,7 +90,6 @@ def main():
         delete_entries(clockify, clockify_settings, f'{config["From"]} 00:00:00')
 
     for row in report_data:
-        print(row)
         if row['stop'] == None: # if task is still running
             continue
         if int(row['workspace_id']) != int(get_target_workspace_id(toggle_settings.workspace, headers)):
