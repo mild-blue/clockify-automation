@@ -89,16 +89,15 @@ def main():
     if config.get('DeleteExistingFrom') is True and config.get('DryRun') is False:
         delete_entries(clockify, clockify_settings, f'{config["From"]} 00:00:00')
 
+    target_workspace_id = int(get_target_workspace_id(toggle_settings.workspace, headers))
     for row in report_data:
         if row['stop'] == None: # if task is still running
             continue
-        if int(row['workspace_id']) != int(get_target_workspace_id(toggle_settings.workspace, headers)):
+        if int(row['workspace_id']) != target_workspace_id:
             continue
         if row['project_id'] == None:
             raise Exception(f'task "{row["description"]}" from {row["start"]} has no assigned project (project_id is None)')
         if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
-            continue
-        if config['ToggleFilterUser'] != row['user_name'] and config['ToggleFilterUser'] != '':
             continue
 
         start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
