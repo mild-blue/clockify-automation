@@ -39,6 +39,7 @@ def delete_entries(clockify: ClockifyAPI, clockify_settings: ServiceSettings, fr
         datetime.datetime.strptime(from_datetime, CSV_DATE_TIME_FORMAT).astimezone(datetime.timezone.utc)
     )
 
+
 def get_target_workspace_id(workspace_name: str, headers: dict):
     response = requests.get('https://api.track.toggl.com/api/v9/workspaces', headers=headers)
     response.raise_for_status()
@@ -47,6 +48,7 @@ def get_target_workspace_id(workspace_name: str, headers: dict):
         if workspace['name'] == workspace_name:
             return str(workspace['id'])
     return None
+
 
 def main():
     clockify_settings = ServiceSettings(
@@ -91,17 +93,18 @@ def main():
 
     target_workspace_id = int(get_target_workspace_id(toggle_settings.workspace, headers))
     for row in report_data:
-        if row['stop'] == None: # if task is still running
+        if row['stop'] == None:  # if task is still running
             continue
         if int(row['workspace_id']) != target_workspace_id:
             continue
         if row['project_id'] == None:
-            raise Exception(f'task "{row["description"]}" from {row["start"]} has no assigned project (project_id is None)')
+            raise Exception(
+                f'task "{row["description"]}" from {row["start"]} has no assigned project (project_id is None)')
         if config['ToggleFilterClient'] != row['client_name'] and config['ToggleFilterClient'] != '':
             continue
         if config['ToggleFilterUser'] != row['user_name'] and config['ToggleFilterUser'] != '':
             continue
-        
+
         start = datetime.datetime.strptime(row["start"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
         start = datetime.datetime.strptime(start, CSV_DATE_TIME_FORMAT)
         end = datetime.datetime.strptime(row["stop"], "%Y-%m-%dT%H:%M:%S%z").strftime(CSV_DATE_TIME_FORMAT)
@@ -118,7 +121,7 @@ def main():
             clockify.addEntry(
                 start=start,
                 description=row['description'],
-                projectName= row['project_name'],
+                projectName=row['project_name'],
                 userMail=clockify_settings.email,
                 workspace=clockify_settings.workspace,
                 end=end,
@@ -126,6 +129,7 @@ def main():
             )
         else:
             logger.info('Dry run - nothing is sent to Clockify.')
+
 
 if __name__ == '__main__':
     main()
