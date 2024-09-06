@@ -1,11 +1,14 @@
+import base64
 import datetime
 import json
 import logging
 from dataclasses import dataclass
 from typing import Optional
+
+import pandas as pd
 import requests
+
 from ClockifyAPI import ClockifyAPI
-import base64
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 
@@ -50,6 +53,63 @@ def get_target_workspace_id(workspace_name: str, headers: dict):
     return None
 
 
+def calculate_duration(start, end):
+    """Calculate the duration in seconds between start and end times."""
+    duration = end - start
+    return int(duration.total_seconds())
+
+
+# Created by chatGPT
+def get_report_data_from_csv(csv_file_path):
+    # Load the CSV file into a pandas DataFrame
+    toggl_data = pd.read_csv(csv_file_path)
+
+    # List to hold transformed data
+    transformed_data = []
+
+    # Iterate through each row and map it to the desired format
+    for index, row in toggl_data.iterrows():
+        # Combine Start date and Start time to create ISO format datetime
+        start_time = datetime.datetime.strptime(f"{row['Start date']} {row['Start time']}", "%Y-%m-%d %H:%M:%S")
+        end_time = datetime.datetime.strptime(f"{row['End date']} {row['End time']}", "%Y-%m-%d %H:%M:%S")
+
+        # Create the transformed dictionary (mimicking the API JSON format)
+        entry = {
+            'id': index + 1,  # Since CSV lacks an ID, use the row index + 1
+            'workspace_id': 4526181,  # Placeholder
+            'project_id': 202830918,  # Placeholder
+            'task_id': None,  # CSV lacks task information
+            'billable': True if row['Billable'].strip().lower() == 'yes' else False,
+            'start': start_time.isoformat() + "+00:00",
+            'stop': end_time.isoformat() + "+00:00",
+            'duration': calculate_duration(start_time, end_time),
+            'description': row['Description'],
+            'tags': [] if pd.isna(row['Tags']) else [row['Tags']],  # Empty list if no tags
+            'tag_ids': [],  # Placeholder for tag IDs
+            'duronly': True,  # Placeholder
+            'at': end_time.isoformat() + "+00:00",  # Using the stop time as the 'at' time
+            'server_deleted_at': None,
+            'user_id': 3787173,  # Placeholder
+            'uid': 3787173,  # Placeholder
+            'wid': 4526181,  # Placeholder
+            'pid': 202830918,  # Placeholder
+            'client_name': row['Client'],
+            'project_name': row['Project'],
+            'project_color': '#566614',  # Placeholder
+            'project_active': True,  # Placeholder
+            'project_billable': False,  # Placeholder
+            'user_name': row['User'],
+            'user_avatar_url': '',  # Placeholder
+            'permissions': None  # Placeholder
+        }
+
+        # Append the transformed entry to the list
+        transformed_data.append(entry)
+
+    # Now transformed_data contains the structured data similar to the API response
+    return transformed_data
+
+
 def main():
     clockify_settings = ServiceSettings(
         config['ClockifyApiKey'],
@@ -84,6 +144,11 @@ def main():
         report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers, params=params)
         report_response.raise_for_status()
         report_data = report_response.json()
+
+        if config.get('import_from_csv') is True:
+            report_data = get_report_data_from_csv(config.get('csv_file_path'))
+
+        # print(report_data)
     except requests.exceptions.RequestException as e:
         logger.error(f'Error while getting data from Toggl: {str(e)}')
         return
