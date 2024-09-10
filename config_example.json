@@ -9,5 +9,7 @@
   "From": "YYYY-MM-DD",
   "To": "YYYY-MM-DD",
   "DeleteExistingFrom": false,
-  "DryRun": false
+  "DryRun": false,
+  "import_from_csv": false,
+  "csv_file_path": "C:\\Users\\you\\Downloads\\Toggl_time_entries_2024-05-01_to_2024-05-22.csv"
 }
