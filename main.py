@@ -141,12 +141,13 @@ def main():
         'end_date': config['To']
     }
     try:
-        report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers, params=params)
-        report_response.raise_for_status()
-        report_data = report_response.json()
-
         if config.get('import_from_csv') is True:
             report_data = get_report_data_from_csv(config.get('csv_file_path'))
+        else:
+            report_response = requests.get(f'{toggle_base_url}/me/time_entries?meta=true', headers=headers,
+                                           params=params)
+            report_response.raise_for_status()
+            report_data = report_response.json()
 
         # print(report_data)
     except requests.exceptions.RequestException as e:
