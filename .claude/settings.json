@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 skills/clockify-day/scripts/status.py)",
+      "Bash(python3 skills/clockify-day/scripts/status.py *)",
+      "Bash(python skills/clockify-day/scripts/status.py)",
+      "Bash(python skills/clockify-day/scripts/status.py *)",
+      "Bash(date)",
+      "Bash(date *)",
+      "Read(skills/clockify-day/**)"
+    ]
+  }
+}
