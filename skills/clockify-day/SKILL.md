@@ -32,9 +32,21 @@ Use the absolute path to this skill's `scripts/status.py`. It outputs JSON to st
 
 If the script errors, it writes JSON to stderr (e.g. `{"error": "...", "code": "missing_api_key"}`). See **Failure modes** below.
 
+**Then fetch the user's open assigned issues** — this is the primary signal for description-guessing when the user gives vague summaries like "worked on chatbot", "did some testing", or "fixed that bug":
+
+```bash
+gh search issues --assignee @me --state open --json number,title,repository,url --limit 50
+```
+
+Each result has `number`, `title`, `repository.nameWithOwner`, `url`. Map the repo to a Clockify project (e.g. `mild-blue/slp-*` → `slp`; `mild-blue/clockify-automation` → `internal`). The description format from `notes.md` for these is `#<number> <title>`.
+
+If the user works on Azure DevOps tasks too, ask them once which boards / projects to query — keep the answer in `<skill_dir>/notes.md` so you don't ask again.
+
 ## Step 2 — Reason
 
 **First, read `<skill_dir>/notes.md`.** It contains the user's personal logging rules and project-mapping conventions. Anything in there overrides guesses you'd otherwise make from `history` alone.
+
+**When the user describes work in vague terms ("chatbot", "testing", "that PR"), match it against the assigned-issues list before falling back to `history`.** Keyword-match against issue titles and repo names. If exactly one issue matches, propose `#<number> <title>` on the repo's project. If multiple match, list the candidates so the user can pick one number. If none match, fall back to history-based guessing and flag `[low confidence]`.
 
 Then walk the calendar events in time order. For each one, decide:
 
@@ -102,10 +114,10 @@ File format:
 }
 ```
 
-Save to `/tmp/clockify_create_<timestamp>.json` and run:
+Save to `.cache/clockify_create_<timestamp>.json` (relative to the repo root — the `.cache/` dir is gitignored) and run:
 
 ```bash
-python <skill_dir>/scripts/create.py --input /tmp/clockify_create_<timestamp>.json
+python <skill_dir>/scripts/create.py --input .cache/clockify_create_<timestamp>.json
 ```
 
 The script prints `{"created": [...]}`. Each result is either:
@@ -136,7 +148,7 @@ When the user asks to fix, move, shorten, retime, reproject, or delete already-l
 
 3. **Wait for explicit numbered confirmation.** "apply 1,2,3", "do all of those", "yes apply" all qualify. "looks good" alone doesn't — Clockify has no undo, and a wrong edit silently corrupts billing history. The bar is the same as for creates.
 
-4. **Write** to `/tmp/clockify_edit_<timestamp>.json`:
+4. **Write** to `.cache/clockify_edit_<timestamp>.json` (relative to the repo root — gitignored):
 
    ```json
    {
@@ -151,7 +163,7 @@ When the user asks to fix, move, shorten, retime, reproject, or delete already-l
    Update fields are optional — anything you omit keeps its current value. Then run:
 
    ```bash
-   python <skill_dir>/scripts/edit.py --input /tmp/clockify_edit_<timestamp>.json
+   python <skill_dir>/scripts/edit.py --input .cache/clockify_edit_<timestamp>.json
    ```
 
    Output:
@@ -184,6 +196,15 @@ OAuth files live in this skill's directory (next to `SKILL.md`):
 
 - `client_secret.json` — user-provided OAuth client (Desktop app type from Google Cloud Console). One-time setup; see `README.md`.
 - `token.json` — auto-created and refreshed after the first run. Don't commit it.
+
+## Command hygiene
+
+The project's `.claude/settings.json` auto-allows `status.py` (any args) so you don't have to ask the user every time. To keep that allowlist actually doing its job:
+
+- **Never pipe `status.py` to another interpreter** (e.g. `python3 status.py | python3 -c "..."`). The trailing interpreter is arbitrary code and falls outside the allowlist — the user gets a prompt for what should be a read-only check. Instead: run `status.py` alone, let the JSON come back as the tool result, and parse it in your response.
+- **Don't combine reads and writes in one shell line.** Multi-line `cat > /tmp/foo.json <<EOF` + `python3 edit.py` chains read like a single big command — even if `edit.py` rightly prompts, the surrounding `cat` and `date` make the prompt look scary. Run them as separate tool calls.
+- **Use `--projects [FILTER]` for project lookups** instead of ad-hoc `python3 <<'EOF'` heredocs. Same data, no prompt.
+- **Stage `--input` JSON inside the repo, not `/tmp`.** Use `.cache/clockify_*.json` (already in `.gitignore`). Write tool calls under the working tree auto-approve; equivalent `Write(/tmp/clockify_*.json)` allowlist entries did not take effect in testing on 2026-05-11, even after a Claude Code restart.
 
 ## What never to do
 

@@ -5,8 +5,16 @@
       "Bash(python3 skills/clockify-day/scripts/status.py *)",
       "Bash(python skills/clockify-day/scripts/status.py)",
       "Bash(python skills/clockify-day/scripts/status.py *)",
+      "Bash(python3 skills/clockify-day/scripts/edit.py *)",
+      "Bash(python skills/clockify-day/scripts/edit.py *)",
+      "Bash(python3 skills/clockify-day/scripts/create.py *)",
+      "Bash(python skills/clockify-day/scripts/create.py *)",
       "Bash(date)",
       "Bash(date *)",
+      "Bash(gh search issues)",
+      "Bash(gh search issues *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
       "Read(skills/clockify-day/**)"
     ]
   }
