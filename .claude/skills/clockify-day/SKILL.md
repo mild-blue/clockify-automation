@@ -40,6 +40,8 @@ gh search issues --assignee @me --state open --json number,title,repository,url 
 
 Each result has `number`, `title`, `repository.nameWithOwner`, `url`. Map the repo to a Clockify project (e.g. `mild-blue/slp-*` → `slp`; `mild-blue/clockify-automation` → `internal`). The description format from `notes.md` for these is `#<number> <title>`.
 
+**If the user pastes a PR URL (not an issue URL), resolve it to the underlying issue first.** GitHub PRs typically have a `Fixes #N` / `Closes #N` reference in the body. Fetch the PR (`gh pr view <num> --json title,body,closingIssuesReferences`), find the referenced issue number, and use the **issue** number + title in the description — not the PR's. PR numbers churn (cherry-picks, re-opens); issue numbers are stable and that's what the user tracks against.
+
 If the user works on Azure DevOps tasks too, ask them once which boards / projects to query — keep the answer in `<skill_dir>/notes.md` so you don't ask again.
 
 ## Step 2 — Reason
@@ -59,6 +61,8 @@ Then walk the calendar events in time order. For each one, decide:
 **Match the user's language.** Look at the descriptions in `history` — if past entries for the chosen project are in Czech, propose in Czech. If they're in English, English. If mixed, match the language of the most-similar past entries for that project. Don't translate the calendar event title verbatim; rephrase in the style the history shows.
 
 **Ambiguous mappings get flagged, not asked.** If a calendar event could plausibly map to two projects, pick the most likely one and mark it `[low confidence]` in the rendered table. Don't pause mid-flow to ask — surfacing ambiguity in the proposal table lets the user fix it in one pass instead of being interrogated event by event.
+
+**Don't over-flag `[low confidence]`.** If the activity has a clear precedent in `history` for a single project (e.g. "Chatbot" appears 3× under `slp` in the last 30 days), just propose it — no `[low confidence]` tag. Reserve the flag for genuinely ambiguous cases (multiple plausible projects, or no precedent at all). Over-flagging trains the user to ignore the tag.
 
 **Never propose entries that overlap already-logged time.** Clockify won't dedupe; the user has to clean up by hand.
 
