@@ -6,24 +6,24 @@ The skill itself is `SKILL.md` — this README is the one-time setup guide.
 
 ## Install
 
-1. **Make the skill discoverable to Claude Code.** Either install it as a plugin/skill in `~/.claude/skills/clockify-day/`, or symlink:
+1. **The skill is discoverable to Claude Code** as a project skill — it lives at `.claude/skills/clockify-day/` in this repo, so `/clockify-day` is available in any Claude Code session opened here (restart Claude Code after first adding it). To use it from *other* projects too, also symlink it into your personal skills dir:
 
    ```bash
    mkdir -p ~/.claude/skills
-   ln -s "$PWD/skills/clockify-day" ~/.claude/skills/clockify-day
+   ln -s "$PWD/.claude/skills/clockify-day" ~/.claude/skills/clockify-day
    ```
 
 2. **Install Python dependencies** (use a venv if you prefer):
 
    ```bash
-   pip install -r skills/clockify-day/requirements.txt
+   pip install -r .claude/skills/clockify-day/requirements.txt
    ```
 
 3. **Set the Clockify API key.** Get it in Clockify under Profile → Preferences → API, then copy the `.env` template and fill it in:
 
    ```bash
-   cp skills/clockify-day/.env.example skills/clockify-day/.env
-   $EDITOR skills/clockify-day/.env
+   cp .claude/skills/clockify-day/.env.example .claude/skills/clockify-day/.env
+   $EDITOR .claude/skills/clockify-day/.env
    ```
 
    The scripts auto-load this file. (Plain `export CLOCKIFY_API_KEY=...` in your shell also works and overrides the `.env` value.)
@@ -44,7 +44,7 @@ The skill itself is `SKILL.md` — this README is the one-time setup guide.
 5. **Download the JSON** and save it as:
 
    ```
-   skills/clockify-day/client_secret.json
+   .claude/skills/clockify-day/client_secret.json
    ```
 
 6. The first run of `status.py` will open a browser window for the consent flow and write `token.json` next to `client_secret.json`. The token auto-refreshes; you only do the browser dance once. If it ever breaks (`invalid_grant`), delete `token.json` and rerun.
