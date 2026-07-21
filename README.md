@@ -3,6 +3,10 @@
 It is based on https://github.com/pieye/toggl2clockify and significant part of the code is just copied from there.
 Credits to Markus Proeller, markus.proeller@pieye.org.
 
+> **Reconstructing what you worked on:** this machine runs a local [ActivityWatch](https://activitywatch.net/)
+> setup that captures apps, URLs, code files and idle time so a day can be turned into Clockify entries.
+> See [TIME_TRACKING.md](TIME_TRACKING.md) for how it works, start/stop, and the retention purge.
+
 ## Setup
 
 * Create virtual env: `python -m venv venv` and activate it: `. ./venv/bin/activate `.
