@@ -151,12 +151,29 @@ worked on*; the calendar only knows scheduled meetings. Full setup in
 - **Log daily.** AW purges after 30 days (03:30 daily). Reconstructing more than
   a few days from memory is where over/under-billing creeps in.
 - **AW-first, calendar-second.** The richest signal is **VS Code window titles**
-  (`aw-watcher-window`, app `Code`) — they carry the SSH branch + file, e.g.
-  `email-ai-asistent.md — chatbot-legal-adr [SSH: ai-dev...]`. Check **both**
-  vscode buckets (`..._Honza...` and `..._Mac`).
+  (`aw-watcher-window`, app `Code`) — they carry the git branch + file + SSH host,
+  e.g. `chatbot-legal-adr — email-ai-asistent.md — … [SSH: ai-dev...]`. The user
+  works mostly in VS Code with Claude Code in the integrated **terminal**, so the
+  window title is often the *only* signal (see below). Branches encode the task
+  (`fix-16626-legacy` → issue #16626, `chatbot-legal-adr` → chatbot legal work),
+  so read the branch to guess the task/project.
+- **VS Code over SSH — the `aw-watcher-vscode` extension is mostly blind here.**
+  It reports `file`/`project`/`language`, but only for files open on the machine
+  where it runs; for Remote-SSH work it logs `unknown` unless the extension is
+  installed **on the SSH host** too. So rely on the window title, which is set via
+  `window.title` in VS Code settings to lead with `${activeRepositoryBranchName}`
+  (configured 2026-09-11) — that puts the branch on every event, including when
+  the terminal is focused and no editor is active.
 - **Trim to active time.** Sum `aw-watcher-afk` `not-afk`; merge blocks with
   <15 min gaps; drop idle. Exclude personal browsing (Facebook, podcasts, maps,
   WhatsApp — often several hours of Chrome that must NOT be billed).
+- **Never log through an idle gap.** A gap in `aw-watcher-afk` active time (no
+  keyboard/mouse) is a break — lunch, errands, away — and stays **unlogged**,
+  even when it falls in the middle of a task. **Split the work block around it;
+  do not bridge it**, and do not extend a block past an idle gap just because the
+  same task resumes after. (Learned the hard way: logging Nabidka straight
+  through a 12:15–12:50 lunch the user had to correct.) Only exception is the
+  calls/meetings rule below.
 - **Calls/meetings override idle.** A span covered by the `aw-watcher-meet`
   bucket — or a clear off-keyboard idle gap that aligns with a calendar meeting —
   counts as a meeting (billable per the calendar), even though AFK shows idle and
