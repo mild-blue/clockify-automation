@@ -50,7 +50,7 @@ When unsure between `slp` and `slp - byznys`: engineering/dev activity → `slp`
 - **Demo instance pro byzdev** → `slp - byznys`
 - **Cesta do NCLP (meeting standards committee)** → `slp - byznys`
 - **Cesta na vlak (uncategorised commute)** → `internal`
-- **Isohelp meetings / schuzka Isohelp** → `internal`
+- **Isohelp meetings / schuzka Isohelp / isohelp** → `slp - byznys` (corrected 2026-07-23; earlier entries were `internal` and were moved)
 - **Reseni newsletteru** → `internal`
 - **Reseni 360 projekt / Shrnovani 360 / Hodnoty firmy** → `internal` (org-level projects)
 - **Reseni teambuildingu** → `internal` (event organizing; can log full evening incl. cross-midnight if that's the reality)
@@ -141,6 +141,55 @@ The user logs against the same issues repeatedly. When they say one of these phr
 - Ideal: start the timer when the task starts, stop when done. Second-best: enter retroactively with at least an estimate. Don't run a task for 2 seconds at the end just to "log it" — useless data.
 - Tags are mostly unused now; only special ones like `out of scope` get used and the team agrees on them ad hoc.
 - Closing: 1st–2nd of the month, sanity-check Clockify for missing description/project and duplicates. Jana builds attendance off this.
+
+## ActivityWatch reconstruction (preferred over calendar-only)
+
+The local ActivityWatch tracker is the primary signal for *what was actually
+worked on*; the calendar only knows scheduled meetings. Full setup in
+[TIME_TRACKING.md](../../../TIME_TRACKING.md) (server at `localhost:5600`).
+
+- **Log daily.** AW purges after 30 days (03:30 daily). Reconstructing more than
+  a few days from memory is where over/under-billing creeps in.
+- **AW-first, calendar-second.** The richest signal is **VS Code window titles**
+  (`aw-watcher-window`, app `Code`) — they carry the git branch + file + SSH host,
+  e.g. `chatbot-legal-adr — email-ai-asistent.md — … [SSH: ai-dev...]`. The user
+  works mostly in VS Code with Claude Code in the integrated **terminal**, so the
+  window title is often the *only* signal (see below). Branches encode the task
+  (`fix-16626-legacy` → issue #16626, `chatbot-legal-adr` → chatbot legal work),
+  so read the branch to guess the task/project.
+- **VS Code over SSH — the `aw-watcher-vscode` extension is mostly blind here.**
+  It reports `file`/`project`/`language`, but only for files open on the machine
+  where it runs; for Remote-SSH work it logs `unknown` unless the extension is
+  installed **on the SSH host** too. So rely on the window title, which is set via
+  `window.title` in VS Code settings to lead with `${activeRepositoryBranchName}`
+  (configured 2026-09-11) — that puts the branch on every event, including when
+  the terminal is focused and no editor is active.
+- **Trim to active time.** Sum `aw-watcher-afk` `not-afk`; merge blocks with
+  <15 min gaps; drop idle. Exclude personal browsing (Facebook, podcasts, maps,
+  WhatsApp — often several hours of Chrome that must NOT be billed).
+- **Never log through an idle gap.** A gap in `aw-watcher-afk` active time (no
+  keyboard/mouse) is a break — lunch, errands, away — and stays **unlogged**,
+  even when it falls in the middle of a task. **Split the work block around it;
+  do not bridge it**, and do not extend a block past an idle gap just because the
+  same task resumes after. (Learned the hard way: logging Nabidka straight
+  through a 12:15–12:50 lunch the user had to correct.) Only exception is the
+  calls/meetings rule below.
+- **Calls/meetings override idle.** A span covered by the `aw-watcher-meet`
+  bucket — or a clear off-keyboard idle gap that aligns with a calendar meeting —
+  counts as a meeting (billable per the calendar), even though AFK shows idle and
+  even if the call was in a background tab. Don't trim call time as a break.
+  (A longer-than-scheduled meeting shows as a longer idle gap — size the entry to
+  the gap, not the calendar slot.)
+- **Confirm "today" first.** The machine clock/date can drift across a long
+  session — verify with `date` before logging.
+
+### Project mappings learned from AW file/branch signals
+- `chatbot-legal-adr` branch (email-ai-asistent, analyza-pacientska-data,
+  podklady-korespondence, DPA / VOP, AI-asistent emails) → `slp - byznys`
+- Isohelp / acquisition letters (dopis-isohelp, acquisition-letter-analysis) → `slp - byznys`
+- POC containers (`update-poc-containers.sh`), model benchmarking
+  (`benchmark-*.pdf`, `run_benchmark`), STT/neshody audio, general slp dev → `slp`
+- **Chatbot beta** (production-testing readiness) → `slp`, issue **#15805**
 
 ## Environment gotchas (this machine)
 

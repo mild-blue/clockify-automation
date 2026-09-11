@@ -137,3 +137,6 @@ clockify_tags.json
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Claude Code local worktrees (session-local, never committed)
+.claude/worktrees/
