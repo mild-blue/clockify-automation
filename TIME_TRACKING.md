@@ -27,6 +27,7 @@ explicitly requested.
 | `aw-watcher-afk` | active / idle (away-from-keyboard) | bundled |
 | `aw-watcher-vscode` | file path, project/workspace, language, duration | VS Code extension `activitywatch.aw-watcher-vscode` |
 | `aw-watcher-web` | URL + page title per tab | Chrome/Brave extension ([Web Watcher](https://chromewebstore.google.com/detail/activitywatch-web-watcher/nglaklhklhcoonedhgnpgddginnjdadi)) |
+| `aw-watcher-meet` | active video call (Meet/Zoom/Teams/Whereby) in **any** tab, even backgrounded | custom, this repo — see below |
 
 Local git history (commits, branch, changed files) is read directly as an extra signal at
 reconstruction time.
@@ -40,6 +41,46 @@ code --install-extension activitywatch.aw-watcher-vscode   # VS Code watcher
 ```
 
 ActivityWatch is set to launch at login via a macOS **Login Item** (hidden).
+
+## Detecting calls (`aw-watcher-meet`)
+
+The bundled watchers miss video calls: the window watcher only records the
+*frontmost* app and the web watcher only the *active tab of the focused window*,
+so a Google Meet / Zoom / Teams call in a **background tab** (while you're in VS
+Code, notes, etc.) is invisible — and since you don't type during a call, the
+AFK watcher logs it as **idle**. Calls therefore silently drop out of the day.
+
+`time-tracking/aw-watcher-meet.py` (in this repo) fixes that. Every `POLL`
+seconds (default 30) it reads **all** Chrome/Brave tabs via AppleScript — without
+launching them — matches real meeting-URL patterns (a Meet code, `zoom.us/j|wc|s/…`,
+Teams `meetup-join`, Whereby), and posts a heartbeat to its own bucket
+`aw-watcher-meet_<host>` (type `call.active`). Consecutive heartbeats merge into
+one continuous "call" event (pulsetime > poll).
+
+Install (already done on this machine):
+
+```bash
+cp time-tracking/aw-watcher-meet.py ~/TimeTracking/aw-watcher-meet.py
+cp time-tracking/blue.mild.aw-watcher-meet.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/blue.mild.aw-watcher-meet.plist
+# first run triggers a one-time macOS Automation prompt ("... wants to control
+# Google Chrome") — approve it, or detection stays empty (the watcher retries safely).
+```
+
+Confirm / restart / stop:
+
+```bash
+tail -f ~/TimeTracking/aw-watcher-meet.log
+curl -s "http://localhost:5600/api/0/buckets/aw-watcher-meet_$(hostname)/events?limit=5" | python3 -m json.tool
+launchctl kickstart -k gui/$(id -u)/blue.mild.aw-watcher-meet   # restart
+launchctl bootout gui/$(id -u)/blue.mild.aw-watcher-meet        # stop
+```
+
+**Reconstruction rule:** a span covered by an `aw-watcher-meet` event is a
+**meeting** — count it as work (billable per the calendar/project) even when the
+AFK watcher shows idle and even when Meet was never in the foreground. Only
+browser calls are caught; native Zoom/Teams desktop apps still rely on the
+window watcher (foreground) — a mic-in-use signal could extend this later.
 
 ## Start / stop / confirm
 
