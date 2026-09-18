@@ -191,6 +191,26 @@ worked on*; the calendar only knows scheduled meetings. Full setup in
   (`benchmark-*.pdf`, `run_benchmark`), STT/neshody audio, general slp dev → `slp`
 - **Chatbot beta** (production-testing readiness) → `slp`, issue **#15805**
 
+### Claude agent sessions on the dev server (task attribution)
+The user works mostly through several parallel Claude Code agents on
+`ai-dev-server-jan-kubant` (NetBird SSH), one **git worktree per agent**, often
+sharing a branch — so the branch / VS Code title can't tell them apart. The
+agents' transcripts can:
+
+- Run `time-tracking/agent-sessions.sh <from> <to-exclusive>` (allowlisted). It
+  prints metadata only — per session: worktree `cwd`, `branch`, timestamps. The
+  first call per NetBird login opens a browser SSO page (the user completes it).
+- **Worktree names carry the issue**: `17255-chat-image-poc` → #17255,
+  `review-fix-17263` → #17263, `rebase-16977` → #16977, `legal-adr` → #16568,
+  `nclp-skills-rebase` → #15768. Look titles up with `gh issue view <n> --repo mild-blue/slp`.
+- Transcript "user" events include tool results, so agents produce timestamps even
+  when the user is away. **Gate on AW AFK active time first**, then attribute each
+  active block to the worktree with the most events inside it (top 1–2).
+- VS Code window titles often just show whichever document was open (e.g. a DPA
+  `.docx`) while the real work happened in an agent — prefer the agent signal.
+- Worktrees outside `slp/` that aren't work (e.g. personal side projects) are not
+  billable — ask the user once and exclude.
+
 ## Environment gotchas (this machine)
 
 - The `.env` with `CLOCKIFY_API_KEY` lives in the **main repo copy** of the skill dir (`/Users/honza/Projects/clockify-automation/.claude/skills/clockify-day/.env`), NOT in worktree copies. Run scripts from the main-repo path.
