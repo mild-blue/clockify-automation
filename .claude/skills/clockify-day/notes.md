@@ -210,6 +210,7 @@ agents' transcripts can:
   `.docx`) while the real work happened in an agent — prefer the agent signal.
 - Worktrees outside `slp/` that aren't work (e.g. personal side projects) are not
   billable — ask the user once and exclude.
+  Known personal (never track): `akupunktura-wuxing`.
 
 ## Environment gotchas (this machine)
 
