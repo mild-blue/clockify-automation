@@ -1,21 +1,25 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 skills/clockify-day/scripts/status.py)",
-      "Bash(python3 skills/clockify-day/scripts/status.py *)",
-      "Bash(python skills/clockify-day/scripts/status.py)",
-      "Bash(python skills/clockify-day/scripts/status.py *)",
-      "Bash(python3 skills/clockify-day/scripts/edit.py *)",
-      "Bash(python skills/clockify-day/scripts/edit.py *)",
-      "Bash(python3 skills/clockify-day/scripts/create.py *)",
-      "Bash(python skills/clockify-day/scripts/create.py *)",
+      "Bash(python3 .claude/skills/clockify-day/scripts/status.py)",
+      "Bash(python3 .claude/skills/clockify-day/scripts/status.py *)",
+      "Bash(python .claude/skills/clockify-day/scripts/status.py)",
+      "Bash(python .claude/skills/clockify-day/scripts/status.py *)",
+      "Bash(python3 .claude/skills/clockify-day/scripts/edit.py *)",
+      "Bash(python .claude/skills/clockify-day/scripts/edit.py *)",
+      "Bash(python3 .claude/skills/clockify-day/scripts/create.py *)",
+      "Bash(python .claude/skills/clockify-day/scripts/create.py *)",
       "Bash(date)",
       "Bash(date *)",
       "Bash(gh search issues)",
       "Bash(gh search issues *)",
       "Bash(gh issue view *)",
       "Bash(gh issue list *)",
-      "Read(skills/clockify-day/**)"
+      "Read(.claude/skills/clockify-day/**)",
+      "Bash(time-tracking/agent-sessions.sh *)",
+      "Bash(/opt/homebrew/Caskroom/miniconda/base/bin/python .claude/skills/clockify-day/scripts/status.py *)",
+      "Bash(time-tracking/aw-summary.py *)",
+      "Bash(python3 time-tracking/aw-summary.py *)"
     ]
   }
 }
