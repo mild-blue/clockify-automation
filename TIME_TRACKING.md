@@ -95,6 +95,69 @@ killall -q aw-qt aw-server aw-watcher-afk aw-watcher-window aw-watcher-window-ma
 
 There is also an ActivityWatch **menu-bar icon** for quitting.
 
+## VS Code window title carries the git branch
+
+Most work happens in VS Code over Remote-SSH, often with Claude Code in the
+integrated terminal. The `aw-watcher-vscode` extension is blind there (it logs
+`unknown` for remote files), so the **window title** is the signal. It is set in the
+*local* VS Code user settings (`~/Library/Application Support/Code/User/settings.json`,
+not in this repo) to lead with the branch:
+
+```json
+"window.title": "${activeRepositoryBranchName}${separator}${activeEditorShort}${separator}${rootName}${separator}${remoteName}"
+```
+
+Reload VS Code after changing it. Titles then look like
+`docs/16568-chatbot-legal-adr-0013 — email-ai-asistent.md — ubuntu — SSH: ai-dev-server-jan-kubant`.
+
+## Claude agents on the dev server (NetBird)
+
+The real task signal is which **Claude Code agent** was being driven. Agents run
+on the dev box **`ai-dev-server-jan-kubant`** (user `ubuntu`), reached over
+**NetBird SSH**, one **git worktree per agent** under `~/slp/.claude/worktrees/`,
+named after the issue (`17255-chat-image-poc`, `review-fix-17263`, `legal-adr` → #16568).
+Several agents can share a branch, so branch / window title alone can't separate them.
+
+**Access.** NetBird asks for a browser SSO login (netbird.mild.blue) and, in practice,
+does not keep the token between calls — expect a login page per connection. Use
+NetBird's own client (plain `ssh` through the NetBird ProxyCommand re-prompts for
+every channel, so multiplexing doesn't help):
+
+```bash
+/Applications/NetBird.app/Contents/MacOS/netbird ssh -u ubuntu ai-dev-server-jan-kubant 'echo ok'
+```
+
+**Permission for Claude.** Claude Code's auto-permission check blocks reading the
+server's transcripts unless allowed. The repo's `.claude/settings.json` allowlists
+`time-tracking/agent-sessions.sh`; to let Claude run ad-hoc `netbird ssh` too, add to
+the **local, uncommitted** `.claude/settings.local.json`:
+
+```json
+{ "permissions": { "allow": ["Bash(/Applications/NetBird.app/Contents/MacOS/netbird ssh:*)"] } }
+```
+
+**Read the agent metadata** (worktree, branch, timestamps — never message content):
+
+```bash
+time-tracking/agent-sessions.sh 2026-09-14 2026-09-19 > ~/TimeTracking/agents.json
+```
+
+## Logging playbook (a week at a time)
+
+1. `date` — confirm today (the clock/date has drifted during long sessions).
+2. Last logged day: `status.py --date <day>` walking back (skill `clockify-day`).
+3. Agents: `time-tracking/agent-sessions.sh <from> <to> > ~/TimeTracking/agents.json`
+   (complete the NetBird login page when it opens).
+4. Reconstruction: `time-tracking/aw-summary.py <from> <to> --agents ~/TimeTracking/agents.json`
+   → active blocks (keyboard), calls, apps, branch titles, and per-block agent/worktree shares.
+5. Calendar per day: `status.py --date <day>` (meetings; AW idle gap + calendar meeting = meeting).
+6. Build entries: keep meetings (sized to the call / idle gap, not the calendar slot),
+   split work around idle gaps (never bridge a break), label work blocks from the
+   dominant agent worktree → `#<issue> <title>` (`gh issue view <n> --repo mild-blue/slp`),
+   exclude personal worktrees (see `notes.md`).
+7. Show the user the full entry list per day with totals; create only after explicit
+   `create all` / numbers (skill Step 3–4).
+
 ## Retention / purge
 
 ActivityWatch keeps history indefinitely by default. A purge script trims it:

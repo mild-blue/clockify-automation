@@ -17,7 +17,9 @@
       "Bash(gh issue list *)",
       "Read(.claude/skills/clockify-day/**)",
       "Bash(time-tracking/agent-sessions.sh *)",
-      "Bash(/opt/homebrew/Caskroom/miniconda/base/bin/python .claude/skills/clockify-day/scripts/status.py *)"
+      "Bash(/opt/homebrew/Caskroom/miniconda/base/bin/python .claude/skills/clockify-day/scripts/status.py *)",
+      "Bash(time-tracking/aw-summary.py *)",
+      "Bash(python3 time-tracking/aw-summary.py *)"
     ]
   }
 }

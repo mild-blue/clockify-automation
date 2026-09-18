@@ -220,6 +220,7 @@ agents' transcripts can:
   /opt/homebrew/Caskroom/miniconda/base/bin/python /Users/honza/Projects/clockify-automation/.claude/skills/clockify-day/scripts/status.py
   ```
 - Clockify API sometimes times out (20s read timeout in scripts). Just retry — it usually works on the second attempt.
+- **`status.py --date D` is shifted by the UTC offset (known bug, fix pending):** it returns entries starting from 22:00 of D-1 up to 22:00 of D, so late-evening entries show under the *next* day. Before assuming an overlap, check the entry's actual `start` date.
 - When the shell `cwd` resets to a worktree, still invoke scripts by absolute path pointing at the main repo copy so `.env` loads correctly.
 
 ## Bulk-logging workflow tips

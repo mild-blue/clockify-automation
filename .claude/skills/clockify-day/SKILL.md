@@ -1,6 +1,6 @@
 ---
 name: clockify-day
-description: Help the user log today's time entries in Clockify based on their Google Calendar. Use this skill whenever the user asks to log their time, fill in their day, check what they've logged, see calendar gaps, or asks anything resembling "what should I log", "did I forget anything", "fill in my Clockify", "doplň mi den", "co jsem dnes dělal", "log my meetings", or mentions Clockify and a current/recent day in the same message. Trigger this skill even if the user just says "I should log my time" or "what did I do today" — those phrasings are the right context for this workflow.
+description: Help the user log time entries in Clockify (today or a backfill of several days) based on their Google Calendar, ActivityWatch activity and Claude agent sessions on the dev server. Use this skill whenever the user asks to log their time, fill in their day, check what they've logged, see calendar gaps, or asks anything resembling "what should I log", "did I forget anything", "fill in my Clockify", "doplň mi den", "co jsem dnes dělal", "log my meetings", or mentions Clockify and a current/recent day in the same message. Trigger this skill even if the user just says "I should log my time" or "what did I do today" — those phrasings are the right context for this workflow.
 ---
 
 # Clockify Day
@@ -43,6 +43,27 @@ Each result has `number`, `title`, `repository.nameWithOwner`, `url`. Map the re
 **If the user pastes a PR URL (not an issue URL), resolve it to the underlying issue first.** GitHub PRs typically have a `Fixes #N` / `Closes #N` reference in the body. Fetch the PR (`gh pr view <num> --json title,body,closingIssuesReferences`), find the referenced issue number, and use the **issue** number + title in the description — not the PR's. PR numbers churn (cherry-picks, re-opens); issue numbers are stable and that's what the user tracks against.
 
 If the user works on Azure DevOps tasks too, ask them once which boards / projects to query — keep the answer in `<skill_dir>/notes.md` so you don't ask again.
+
+### Step 1b — Reconstruct the actual work (ActivityWatch + Claude agents)
+
+The calendar only knows meetings. For what was actually worked on — and for any
+backfill of more than today — reconstruct from local tracking. Full setup and
+background: `TIME_TRACKING.md` in the repo root ("Logging playbook" section).
+
+```bash
+# 1. Which Claude agent sessions ran on the dev server (metadata only).
+#    Opens a NetBird SSO page in the browser — tell the user to complete it.
+time-tracking/agent-sessions.sh 2026-09-14 2026-09-19 > ~/TimeTracking/agents.json
+
+# 2. Per-day reconstruction: active blocks, calls, apps, branch titles, and which
+#    agent worktree dominated each active block.
+time-tracking/aw-summary.py 2026-09-14 2026-09-19 --agents ~/TimeTracking/agents.json
+```
+
+Run both from the repo root. How to turn that output into entries (idle gaps,
+calls, worktree → issue, personal worktrees, project mappings) is in
+`notes.md` → "ActivityWatch reconstruction" and "Claude agent sessions".
+Weekends are not work unless the user says so.
 
 ## Step 2 — Reason
 
